@@ -1,0 +1,162 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep 17 19:43:37 2019
+
+@author: Cade Knott
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+plt.rcParams.update({'font.size': 14}) # set font size in plots
+steps = 1e-2
+t = np.arange(0,20+steps,steps) # to go up to 5.0, we must add a stepSize since `np.arange()`
+
+def ramp(t, m, start):
+    y = np.zeros((len(t)))
+    for i in range(len(t)):
+          if t[i] > start:
+              y[i] = (m*t[i])-(m*start)
+          else:
+              y[i] = 0
+    return y
+
+def step(t, start):
+    y = np.zeros((len(t)))
+    for i in range(len(t)):
+          if t[i] > start:
+              y[i] = 1    
+          else:
+              y[i] = 0
+    return y
+
+def func1(t):
+    y = step(t, 2) - step(t, 9)
+    return y
+    
+def func2(t):
+    y = np.exp(-t)
+    return y
+
+def func3(t):
+    y = (ramp(t, 1, 2)*(step(t, 2)-step(t, 3))) + (ramp(-t, 1, -4)*(step(t, 3)-step(t, 4)))
+    return y
+    
+    
+y1 = func1(t)
+
+y2 = func2(t)
+    
+y3 = func3(t)
+
+def my_convolve(f1,f2):
+    Nf1 = len(f1)
+    Nf2 = len(f2)
+    f1Extended = np.append(f1, np.zeros((1,Nf2 - 1)))  #extending length of arrays to equal each other  
+    f2Extended = np.append(f2, np.zeros((1,Nf1 - 1)))
+    result = np.zeros(f1Extended.shape)
+    for i in range(Nf2 + Nf1 - 2):
+        result[i] = 0
+        for j in range(Nf1):
+            if(i - j + 1 > 0):
+                try:
+                    result[i] = result[i] + f1Extended[j]*f2Extended[i - j +1] #
+                except:
+                    print(i,j)
+    return result
+
+c1 = my_convolve(y1, y2)
+
+c2 = my_convolve(y2,y3)
+
+c3 = my_convolve(y1,y3)
+
+s1 = sig.convolve(y1,y2)
+
+s2 = sig.convolve(y2,y3)
+
+s3 = sig.convolve(y1,y3)
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.subplot(3,1,1)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.3)
+plt.plot(t,y1)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Function 1')
+
+plt.subplot(3,1,2)
+plt.plot(t,y2)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y_2(t)')
+plt.xlabel('t')
+plt.title('Function 2')
+
+plt.subplot(3,1,3)
+plt.plot(t,y3)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y_3(t)')
+plt.xlabel('t')
+plt.title('Function 3')
+
+tconv = np.arange(0, 40+3*steps, steps)
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c1*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_1 convloved with F_2')
+
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c2*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_2 convloved with F_3')
+
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c3*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_1 convloved with F_3')
+
+myFigSize = (12,12)
+plt.figure(figsize=myFigSize)
+plt.subplot(3,1,1)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.4)
+plt.plot(tconv,s1*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_1 convloved with F_2.sig')
+
+plt.subplot(3,1,2)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.4)
+plt.plot(tconv,s2*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_2 convloved with F_3.sig')
+
+plt.subplot(3,1,3)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.4)
+plt.plot(tconv,s3*steps)
+plt.axis([0,15,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('F_1 convloved with F_3.sig')
+
