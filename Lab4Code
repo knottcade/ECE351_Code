@@ -1,0 +1,184 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep 24 19:28:22 2019
+
+@author: Cade Knott
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+plt.rcParams.update({'font.size': 14}) # set font size in plots
+steps = 1e-2
+t = np.arange(-10,10+steps,steps) # to go up to 5.0, we must add a stepSize since `np.arange()`
+
+def ramp(t, m, start):
+    y = np.zeros((len(t)))
+    for i in range(len(t)):
+          if t[i] > start:
+              y[i] = (m*t[i])-(m*start)
+          else:
+              y[i] = 0
+    return y
+
+def step(t, start):
+    y = np.zeros((len(t)))
+    for i in range(len(t)):
+          if t[i] > start:
+              y[i] = 1    
+          else:
+              y[i] = 0
+    return y
+
+def negstep(t, start):
+    y = np.zeros((len(t)))
+    for i in range(len(t)):
+          if t[i] < start:
+              y[i] = 1    
+          else:
+              y[i] = 0
+    return y
+
+def func1(t):
+    y = np.exp(2*t)*negstep(t, 1)
+    return y
+    
+def func2(t):
+    y = step(t, 2) - step(t, 6)
+    return y
+
+def func3(t):
+    y = np.cos(1.57*t)*step(t, 0)
+    return y
+    
+    
+y1 = func1(t)
+
+y2 = func2(t)
+    
+y3 = func3(t)
+
+y4 = step(t, 0)
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.subplot(3,1,1)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.3)
+plt.plot(t,y1)
+plt.axis([-10,10,-2,8])
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Function 1')
+
+plt.subplot(3,1,2)
+plt.plot(t,y2)
+plt.axis([-10,10,-1.5,1.5])
+plt.grid(True)
+plt.ylabel('y_2(t)')
+plt.xlabel('t')
+plt.title('Function 2')
+
+plt.subplot(3,1,3)
+plt.plot(t,y3)
+plt.axis([-10,10,-1.5,1.5])
+plt.grid(True)
+plt.ylabel('y_3(t)')
+plt.xlabel('t')
+plt.title('Function 3')
+
+def my_convolve(f1,f2):
+    Nf1 = len(f1)
+    Nf2 = len(f2)
+    f1Extended = np.append(f1, np.zeros((1,Nf2 - 1)))  #extending length of arrays to equal each other  
+    f2Extended = np.append(f2, np.zeros((1,Nf1 - 1)))
+    result = np.zeros(f1Extended.shape)
+    for i in range(Nf2 + Nf1 - 2):
+        result[i] = 0
+        for j in range(Nf1):
+            if(i - j + 1 > 0):
+                try:
+                    result[i] = result[i] + f1Extended[j]*f2Extended[i - j +1] #
+                except:
+                    print(i,j)
+    return result
+
+c1 = my_convolve(y1,y4)
+
+c2 = my_convolve(y2,y4)
+
+c3 = my_convolve(y3,y4)
+
+tconv = np.arange(2*t[0], 2*t[len(t)-1]+steps, steps)
+
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c1*steps)
+plt.axis([-10,10,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Step Response 1')
+
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c2*steps)
+plt.axis([-10,10,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Step Response 2')
+
+myFigSize = (10,8)
+plt.figure(figsize=myFigSize)
+plt.plot(tconv,c3*steps)
+plt.axis([-10,10,-1,1])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Step Response 3')
+
+def integral1(t):
+    y = 0.5*((np.exp(2*t)*negstep(t, 1))+(np.exp(2)*step(t, 1)))
+    return y
+    
+def integral2(t):
+    y = ramp(t, 1, 2)-ramp(t, 1, 6)-ramp(t, 1, 12)+ramp(t, 1, 16)
+    return y
+
+def integral3(t):
+    y = (1/1.57)*np.sin(1.57*t)*step(t, 0)
+    return y
+
+y5 = integral1(t)
+
+y6 = integral2(t)
+
+y7 = integral3(t)
+
+myFigSize = (10,12)
+plt.figure(figsize=myFigSize)
+plt.subplot(3,1,1)
+plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.3)
+plt.plot(t,y5)
+plt.axis([-10,10,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Integral 1')
+
+plt.subplot(3,1,2)
+plt.plot(t,y6)
+plt.axis([-10,10,-4,5])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Integral 2')
+
+plt.subplot(3,1,3)
+plt.plot(t,y7)
+plt.axis([-10,10,-1,1])
+plt.grid(True)
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.title('Integral 3')
