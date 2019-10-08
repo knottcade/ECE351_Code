@@ -1,0 +1,50 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Oct  1 19:40:33 2019
+
+@author: Cade Knott
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+plt.rcParams.update({'font.size': 14}) # set font size in plots
+steps = 1e-5
+t = np.arange(0,1.2e-3+steps,steps) # to go up to 5.0, we must add a stepSize since `np.arange()`
+
+def handsolv(t):
+    y = 10356*np.exp(-5000*t)*np.sin(18584*t + 1.834)
+    return y
+
+y1 = handsolv(t)
+
+num = [0, 1, 0]
+den = [0.0001, 1, 37037]
+
+tout, yout = sig.impulse((num, den), T = t)
+
+tout2, yout2 = sig.step((num, den), T = t)    
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.plot(t,y1)
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Hand Solved Impulse Response')
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.plot(tout,yout)
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Scipy Impulse Response')
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.plot(tout2,yout2)
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Scipy Step Response')
