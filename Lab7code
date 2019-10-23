@@ -1,0 +1,70 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Oct 15 19:13:12 2019
+
+@author: Cade Knott
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+plt.rcParams.update({'font.size': 14}) # set font size in plots
+steps = 1e-3
+t = np.arange(0,2+steps,steps) # to go up to 5.0, we must add a stepSize since `np.arange()`
+
+Gnum = [1, 9]
+Gden = [1, -2, -40, -64]
+
+Anum = [1, 4]
+Aden = [1, 4, 3]
+
+B = [1, 26, 168]
+
+zG, pG, kG = sig.tf2zpk(Gnum, Gden)
+
+zA, pA, kA = sig.tf2zpk(Anum, Aden)
+
+zB = np.roots(B)
+
+print('zG' + str(zG))
+print('pG' + str(pG))
+print('kG' + str(kG))
+print('zA' + str(zA))
+print('pA' + str(pA))
+print('kA' + str(kA))
+print('zB' + str(zB))
+
+openden = sig.convolve(sig.convolve([1, -8], [1, 2]),sig.convolve([1, 3], [1, 1]))
+print ('Denominator = ', openden)
+
+tout, yout = sig.step((Gnum, openden))
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.plot(tout,yout)
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Open Loop Step Response')
+
+closednum = sig.convolve(Anum, Gnum)
+closedden = sig.convolve((sig.convolve(Gnum, B)+Gden),Aden)  
+
+print ('Numerator = ', closednum)
+print ('Denominator = ', closedden)
+
+zClose, pClose, kClose = sig.tf2zpk(closednum, closedden)
+
+print('zClose' + str(zClose))
+print('pClose' + str(pClose))
+print('kClose' + str(kClose))
+
+tout2, yout2 = sig.step((closednum, closedden))
+
+myFigSize = (12,14)
+plt.figure(figsize=myFigSize)
+plt.plot(tout2,yout2)
+plt.grid(True)
+plt.ylabel('y_1(t)')
+plt.xlabel('t')
+plt.title('Closed Loop Step Response')
