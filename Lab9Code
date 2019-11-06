@@ -1,0 +1,112 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 31 19:36:24 2019
+
+@author: Cade Knott
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+from scipy.fftpack import fft, fftshift
+plt.rcParams.update({'font.size': 14}) # set font size in plots
+steps = 1e-4
+fs = 1e2
+Ts = 1/fs
+t = np.arange(0, 2, Ts)
+T = 8
+t1 = np.arange(0, 2*T, Ts)
+y = 0
+N = 15
+
+def fftold(x, fs):
+    N = len(x) #find the length of the signal
+    X_fft = fft(x) #perform the fft 
+    X_fft_shifted = fftshift(X_fft) #shift the zero frequency components
+                                                  # to the center of the spectrum
+    freq = np.arange(-N/2, N/2)*fs/N  #compute the frequencies for the output
+                                      #signal, (fs is the sampling frequency and
+                                      # needs to be defined previously in your code)
+    X_mag = np.abs(X_fft_shifted)/N  #compute the magnitudes of the signal
+    X_phi = np.angle(X_fft_shifted)  #compute the phases of the signal
+    return freq, X_mag, X_phi
+# ------ End of user defined function ------#
+
+def figplot(t, xt, freq, X_mag, X_phi):
+    myFigSize = (14,10)
+    plt.figure(figsize=myFigSize)
+    plt.subplot(3,1,1)
+    plt.subplots_adjust(left=0.125,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.3)
+    plt.plot(t,xt)
+    plt.grid(True)
+    plt.xlabel('t(s)')
+    plt.ylabel('x(t)')
+    plt.title('x(t)')
+
+    plt.subplot(3,2,3)
+    plt.stem(freq, X_mag)
+    plt.axis([-50,50,-0.5,0.5])
+    plt.grid(True)
+    plt.ylabel('|X(f)|')
+
+    plt.subplot(3,2,4)
+    plt.stem(freq, X_mag)
+    plt.axis([-2,2,-0.5,0.5])
+    plt.grid(True)
+    
+    plt.subplot(3,2,5)
+    plt.stem(freq, X_phi)
+    plt.axis([-50,50,-3,3])
+    plt.grid(True)
+    plt.xlabel('f(Hz)')
+    plt.ylabel('/_X(f)')
+
+    plt.subplot(3,2,6)
+    plt.stem(freq, X_phi)
+    plt.axis([-2,2,-3,3])
+    plt.grid(True)
+    plt.xlabel('f(Hz)')
+    plt.show()
+    
+def fftnew(x, fs):
+    N = len(x) #find the length of the signal
+    X_fft = fft(x) #perform the fft 
+    X_fft_shifted = fftshift(X_fft) #shift the zero frequency components
+                                                  # to the center of the spectrum
+    freq = np.arange(-N/2, N/2)*fs/N  #compute the frequencies for the output
+                                      #signal, (fs is the sampling frequency and
+                                      # needs to be defined previously in your code)
+    X_mag = np.abs(X_fft_shifted)/N  #compute the magnitudes of the signal
+    X_phi = np.angle(X_fft_shifted)  #compute the phases of the signal
+    for i in range(len(X_phi)):
+        if np.abs(X_mag[i])<1e-10:
+            X_phi[i] = 0
+    return freq, X_mag, X_phi
+# ------ End of user defined function ------#
+    
+for i in range(1, N+1):
+    b = 2/(i*np.pi)*(1-np.cos(i*np.pi))
+    x = b*np.sin(i*(2*np.pi/T)*t1)
+    y = y+x
+    
+x1 = np.cos(2*np.pi*t)
+x2 = 5*np.sin(2*np.pi*t)
+x3 = 2*np.cos((4*np.pi*t)-2) + np.sin((12*np.pi*t)+3)**2
+
+freq1, X_mag1, X_phi1 = fftold(x1, fs)
+freq2, X_mag2, X_phi2 = fftold(x2, fs)
+freq3, X_mag3, X_phi3 = fftold(x3, fs)
+
+freq12, X_mag12, X_phi12 = fftnew(x1, fs)
+freq22, X_mag22, X_phi22 = fftnew(x2, fs)
+freq32, X_mag32, X_phi32 = fftnew(x3, fs)
+freq4, X_mag4, X_phi4 = fftnew(y, fs)
+
+figplot(t, x1, freq1, X_mag1, X_phi1)
+figplot(t, x2, freq2, X_mag2, X_phi2)
+figplot(t, x3, freq3, X_mag3, X_phi3)
+
+figplot(t, x1, freq12, X_mag12, X_phi12)
+figplot(t, x2, freq22, X_mag22, X_phi22)
+figplot(t, x3, freq32, X_mag32, X_phi32)
+figplot(t1, y, freq4, X_mag4, X_phi4)
