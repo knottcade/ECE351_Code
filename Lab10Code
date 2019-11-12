@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Nov 11 11:36:55 2019
+
+@author: Cade Knott
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy .signal as sig
+import control as con
+
+steps = 500
+fs = 1e6
+steps1 = 1/fs
+t = np.arange(0, 1e-2+steps1, steps1)
+w = np.arange(1e3, 1e6+steps, steps)
+R = 1000
+L = 27e-3
+C = 100e-9
+
+x_mag = (w/(R*C))/(np.sqrt((w**4) + ((1/(R*C))**2 - (2/(L*C)))*(w**2) + (1/(L*C))**2))
+x_phi = (np.pi/2) - np.arctan((w/(R*C))/((-(w**2)) + (1/(L*C))))
+for i in range (len(w)):
+    if  (1/(L*C)- w[i]**2)<0:
+        x_phi[i] -= np.pi
+
+num = [(1/(R*C)), 0]
+den = [1, (1/(R*C)), (1/(L*C))]
+
+angfreq, x_mag1, x_phi1 = sig.bode((num, den),w)
+
+sys = con.TransferFunction(num, den)
+_ = con.bode(sys, w, dB = True, Hz = True, deg = True, Plot = True) 
+
+x = np.cos(200*np.pi*t) + np.cos(6048*np.pi*t) + np.sin(1e5*np.pi*t)
+
+num1, den1 = sig.bilinear(num, den, fs1)
+y = sig.lfilter(num1, den1, x)
+
+myFigSize = [10,8]
+plt.figure(figsize = myFigSize)
+plt.subplot(2,1,1)
+plt.semilogx(w, 20*np.log10(x_mag))
+plt.title('Hand-Calc Bode')
+plt.ylabel('dB')
+plt.subplot(2,1,2)
+plt.semilogx(w, (180/np.pi)*x_phi)
+plt.xlabel('w')
+plt.ylabel('degrees')
+
+myFigSize = [10,8]
+plt.figure(figsize = myFigSize)
+plt.subplot(2,1,1)
+plt.semilogx(angfreq, x_mag1)
+plt.title('Sig.Bode Plot')
+plt.ylabel('dB')
+plt.subplot(2,1,2)
+plt.semilogx(angfreq, x_phi1-np.pi)
+plt.xlabel('w')
+plt.ylabel('degrees')
+
+myFigSize = [10,8]
+plt.figure(figsize = myFigSize)
+plt.plot(t, x)
+plt.title('x(t)')
+plt.xlabel('t')
+plt.ylabel('x')
+
+myFigSize = [10,8]
+plt.figure(figsize = myFigSize)
+plt.plot(t, y)
+plt.title('x(t) passed through Filter')
+plt.ylabel('y')
+plt.xlabel('t')
+plt.show()
